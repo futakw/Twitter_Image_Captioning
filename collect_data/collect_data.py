@@ -111,7 +111,7 @@ class TweetCollector(object):
 if __name__=='__main__':
 
     screen_name = 'mofumofu_cn'
-    save_data_dir = 'data'
+    save_data_dir = '../data'
 
     C = TweetCollector(screen_name, save_data_dir)
     C.collectTweet()
