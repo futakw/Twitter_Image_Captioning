@@ -61,7 +61,7 @@ if __name__=='__main__':
     use_account = ['mofumofu_cn']
     
     
-    dataset = TwitterDataset(split, use_account ,data_dir='../data')
+    dataset = TwitterDataset(split, use_account, data_dir='data')
 
 
     print(dataset.__getitem__(0))

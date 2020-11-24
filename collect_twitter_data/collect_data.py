@@ -113,6 +113,11 @@ if __name__=='__main__':
     screen_name = 'mofumofu_cn'
     save_data_dir = '../data'
 
+    if os.path.exists(save_data_dir + '/images') == False:
+        os.makedir(save_data_dir + '/images')
+    if os.path.exists(save_data_dir + '/annos') == False:
+        os.makedir(save_data_dir + '/annos')
+
     C = TweetCollector(screen_name, save_data_dir)
     C.collectTweet()
     C.save_data()
