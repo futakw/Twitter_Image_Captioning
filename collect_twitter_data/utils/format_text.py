@@ -1,8 +1,8 @@
 import re
 def format_text(text):
-    '''
-    MeCabに入れる前のツイートの整形方法例
-    '''
+    """
+    不要なテキストを削除するなどの前処理
+    """
 
     text=re.sub(r'https?://[\w/:%#\$&\?\(\)~\.=\+\-…]+', "", text)
     text=re.sub('RT', "", text)

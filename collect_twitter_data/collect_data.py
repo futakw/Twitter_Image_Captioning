@@ -4,6 +4,7 @@ import csv
 import pandas as pd
 import pickle
 from tqdm import tqdm
+import time
 
 import shutil
 import requests
@@ -36,11 +37,11 @@ class TweetCollector(object):
         self.max_num = max_num
 
 
-    def collectTweet(self):
+    def collectTweets(self):
         f_statuses = api.GetUserTimeline(
             screen_name=self.screen_name, 
             include_rts=False, exclude_replies=True, #リツイートとリプライを除く
-            count=self.max_num) #直近200のツイートをみる
+            count=self.max_num) #直近max_numのツイートをみる
 
         f_0 = f_statuses[1]
         print('\nSample Data: \n',f_0)
@@ -59,50 +60,42 @@ class TweetCollector(object):
                     if text not in texts:
                         media_id = this_media.id
                         media_url = this_media.media_url
-                        data.append({'screen_name':self.screen_name, 'text': text, 'media_url':media_url}) 
-                        texts.append(text)
+                        filename = f'{self.screen_name}_{media_id}.png'
+                        # save images
+                        save_path = os.path.join(self.save_data_dir, 'images', filename)
+                        if self.save_img(media_url, save_path): #画像取得成功したら、追加
+                            data.append({
+                                'screen_name':self.screen_name, 'text': text, 'media_url':media_url, 'media_id':media_id,
+                                'filename': filename,
+                            }) 
+                            texts.append(text)
                     elif text in texts:
                         same_tweet_n += 1
             if same_tweet_n == 200:
-                print('This Account is Bot. Ended collecting.')
+                print('This Account is a Bot. Ended collecting.')
                 break
 
         self.data = data
+        self.save_annos()
         print(f'Collected data. Length = {len(data)}.')
 
+    def save_img(self, image_url, save_path):
+        if os.path.exists(save_path) == False:
+            r = requests.get(image_url, stream = True)
+            if r.status_code == 200:
+                r.raw.decode_content = True
+                with open(save_path,'wb') as f:
+                    shutil.copyfileobj(r.raw, f)
+                return True
+            else:
+                print('Image Couldn\'t be retreived', filename)
+                return False
+        return True
 
-    def save_data(self):
-        invalid = 0
-        for idx, d in tqdm(enumerate(self.data)):
-            image_url = d['media_url']
-            filename = f"{d['screen_name']}_{str(idx)}.png"
-            d['filename'] = filename
-
-            save_path = os.path.join(self.save_data_dir, 'images', filename)
-            if os.path.exists(save_path) == False:
-                r = requests.get(image_url, stream = True)
-                if r.status_code == 200:
-                    # Set decode_content value to True, otherwise the downloaded image file's size will be zero.
-                    r.raw.decode_content = True
-                    
-                    # Open a local file with wb ( write binary ) permission.
-                    with open(save_path,'wb') as f:
-                        shutil.copyfileobj(r.raw, f)
-                                
-                    # print('Image sucessfully Downloaded: ',filename)
-                else:
-                    invalid += 1    
-                    print('Image Couldn\'t be retreived', filename)
-            # else:
-            #     print('Image already exists: ',filename)
-
-        # print(self.data)
-
+    def save_annos(self):
         anno_path = os.path.join(self.save_data_dir, 'annos', f'{self.screen_name}.pickle')
         with open(anno_path,'wb') as f:
             pickle.dump(self.data, f)
-
-        print(f'Saved Data. Len: {len(self.data)-invalid}')
 
     def get_tweet_data(self):
         return self.data
@@ -110,18 +103,19 @@ class TweetCollector(object):
 
 if __name__=='__main__':
 
-    screen_name = 'mofumofu_cn'
     save_data_dir = '../data'
+    os.makedirs(save_data_dir + '/images', exist_ok=True)
+    os.makedirs(save_data_dir + '/annos', exist_ok=True)
 
-    if os.path.exists(save_data_dir) == False:
-        os.makedir(save_data_dir)
-    if os.path.exists(save_data_dir + '/images') == False:
-        os.makedir(save_data_dir + '/images')
-    if os.path.exists(save_data_dir + '/annos') == False:
-        os.makedir(save_data_dir + '/annos')
+    ##########　使うアカウント　############
+    from data_info import data_info
+    #####################################
 
-    C = TweetCollector(screen_name, save_data_dir)
-    C.collectTweet()
-    C.save_data()
+    for k in data_info:
+        print(k)
+        screen_name_list = data_info[k]
+        for screen_name in screen_name_list:
+            C = TweetCollector(screen_name, save_data_dir)
+            C.collectTweets()
 
 
