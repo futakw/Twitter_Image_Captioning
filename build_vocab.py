@@ -7,7 +7,7 @@ import os
 from preprocess.japanese_tokenizer import JapaneseTokenizer
 
 
-## python3 build_vocab.py --caption_path /home/smg/nishikawa/STAIR-captions/stair_captions_v1.2_train_tokenized.json --vocab_path ./data/vocab.pkl --use_twitter
+## python3 build_vocab.py --vocab_path ./data/vocab.pkl --use_coco --use_twitter
 
 def loadPickle(fileName):
     with open(fileName, mode="rb") as f:
@@ -36,20 +36,22 @@ class Vocabulary(object):
         return len(self.word2idx)
 
 
-def build_vocab(json, threshold, use_twitter=False, mecab_dict_path=None):
+def build_vocab(json, threshold, use_coco=False, use_twitter=False, mecab_dict_path=None):
     """Build a simple vocabulary wrapper."""
     text_tokenizer = JapaneseTokenizer(splitter="MeCab", model=mecab_dict_path)
-    coco = COCO(json)
     counter = Counter()
-    ids = coco.anns.keys()
-    for i, id in enumerate(ids):
-        caption = str(coco.anns[id]['caption'])
-        # tokens = nltk.tokenize.word_tokenize(caption.lower())
-        tokens = text_tokenizer.tokenize(caption, return_str=True).split()
-        counter.update(tokens)
 
-        if (i + 1) % 1000 == 0:
-            print("[{}/{}] Tokenized the captions.".format(i + 1, len(ids)))
+    if use_coco == True:
+        coco = COCO(json)
+        ids = coco.anns.keys()
+        for i, id in enumerate(ids):
+            caption = str(coco.anns[id]['caption'])
+            # tokens = nltk.tokenize.word_tokenize(caption.lower())
+            tokens = text_tokenizer.tokenize(caption, return_str=True).split()
+            counter.update(tokens)
+
+            if (i + 1) % 1000 == 0:
+                print("[{}/{}] Tokenized the captions.".format(i + 1, len(ids)))
 
     if use_twitter == True:
         # TODO 読み込み方
@@ -85,7 +87,7 @@ def build_vocab(json, threshold, use_twitter=False, mecab_dict_path=None):
 
 def main(args):
     vocab = build_vocab(
-        json=args.caption_path, threshold=args.threshold, use_twitter=args.use_twitter, mecab_dict_path=args.mecab_dict_path
+        json=args.caption_path, threshold=args.threshold, use_coco=args.use_coco, use_twitter=args.use_twitter, mecab_dict_path=args.mecab_dict_path
     )
     vocab_path = args.vocab_path
     with open(vocab_path, "wb") as f:
@@ -114,6 +116,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("--use_twitter", action="store_true")
+    parser.add_argument("--use_coco", action="store_true")
     parser.add_argument(
         "--mecab_dict_path", default="/home/smg/nishikawa/src/lib/mecab/dic/ipadic"
     )
