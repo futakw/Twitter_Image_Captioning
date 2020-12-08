@@ -1,0 +1,11 @@
+matplotlib
+nltk
+numpy
+Pillow
+argparse
+requests
+requests_oauthlib
+python-twitter
+imgaug
+mojimoji
+mecab-python

@@ -12,7 +12,8 @@ import numpy as np
 
 
 im_size = (224, 224)
-mean, std = [0.4802, 0.4481, 0.3975], [0.2302, 0.2265, 0.2262]
+# mean, std = [0.4802, 0.4481, 0.3975], [0.2302, 0.2265, 0.2262]
+mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 normalize = transforms.Normalize(mean = mean, std = std)
 
 
