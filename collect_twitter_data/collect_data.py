@@ -31,7 +31,7 @@ class TweetCollector(object):
 
     def __init__(self, screen_name, save_data_dir, max_num=10000):
         self.screen_name = screen_name
-        print(f'Initialized collector: {self.screen_name}')
+        print(f'============================================\nInitialized collector: {self.screen_name}')
 
         self.save_data_dir = save_data_dir
         self.max_num = max_num
@@ -41,39 +41,59 @@ class TweetCollector(object):
         f_statuses = api.GetUserTimeline(
             screen_name=self.screen_name, 
             include_rts=False, exclude_replies=True, #リツイートとリプライを除く
-            count=self.max_num) #直近max_numのツイートをみる
+            count=10) #直近max_numのツイートをみる
+        if len(f_statuses)==0:
+            print('Error, cannot retrieve tweets.')
+            return
 
-        f_0 = f_statuses[1]
-        print('\nSample Data: \n',f_0)
-        print('\n\n')
+        f_0 = f_statuses[0]
+        # print('\nSample Data: \n',f_0)
+        # print('\n')
 
         data = []
         texts = []
         same_tweet_n = 0
-        for f_s in tqdm(f_statuses):
-            media = f_s.media
-            if media is not None: #メディアツイートである場合
-                this_media = media[0] #複数ある場合は初め
-                is_photo = True if this_media.type=='photo' else False
-                if is_photo: # 画像ツイートである場合
-                    text = format_text(f_s.text)
-                    if text not in texts:
-                        media_id = this_media.id
-                        media_url = this_media.media_url
-                        filename = f'{self.screen_name}_{media_id}.png'
-                        # save images
-                        save_path = os.path.join(self.save_data_dir, 'images', filename)
-                        if self.save_img(media_url, save_path): #画像取得成功したら、追加
-                            data.append({
-                                'screen_name':self.screen_name, 'text': text, 'media_url':media_url, 'media_id':media_id,
-                                'filename': filename,
-                            }) 
-                            texts.append(text)
-                    elif text in texts:
-                        same_tweet_n += 1
-            if same_tweet_n == 200:
-                print('This Account is a Bot. Ended collecting.')
+
+        max_id = f_0.id + 1
+        max_iter = int(self.max_num/200)
+        iter = 0
+        while same_tweet_n<200 and iter<max_iter:
+            iter += 1
+            f_statuses = api.GetUserTimeline(
+                screen_name=self.screen_name, 
+                include_rts=False, exclude_replies=True, #リツイートとリプライを除く
+                count=200,
+                max_id=max_id-1
+                ) 
+            if len(f_statuses)==0:
                 break
+            f_last = f_statuses[-1]
+            max_id = f_last.id # max_idを更新しとく
+
+            for f_s in tqdm(f_statuses):
+                media = f_s.media
+                if media is not None: #メディアツイートである場合
+                    this_media = media[0] #複数ある場合は初め
+                    is_photo = True if this_media.type=='photo' else False
+                    if is_photo: # 画像ツイートである場合
+                        text = format_text(f_s.text)
+                        if text not in texts:
+                            media_id = this_media.id
+                            media_url = this_media.media_url
+                            filename = f'{self.screen_name}_{media_id}.png'
+                            # save images
+                            save_path = os.path.join(self.save_data_dir, 'images', filename)
+                            if self.save_img(media_url, save_path): #画像取得成功したら、追加
+                                data.append({
+                                    'screen_name':self.screen_name, 'text': text, 'media_url':media_url, 'media_id':media_id,
+                                    'filename': filename,
+                                }) 
+                                texts.append(text)
+                        elif text in texts:
+                            same_tweet_n += 1
+                if same_tweet_n == 200:
+                    print('This Account is a Bot. Ended collecting.')
+                    break
 
         self.data = data
         self.save_annos()
@@ -88,7 +108,7 @@ class TweetCollector(object):
                     shutil.copyfileobj(r.raw, f)
                 return True
             else:
-                print('Image Couldn\'t be retreived', filename)
+                print('Image Couldn\'t be retreived', save_path)
                 return False
         return True
 
@@ -117,5 +137,3 @@ if __name__=='__main__':
         for screen_name in screen_name_list:
             C = TweetCollector(screen_name, save_data_dir)
             C.collectTweets()
-
-

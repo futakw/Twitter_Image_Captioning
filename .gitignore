@@ -1,6 +1,9 @@
 *.png
 *.jpg
 *.pickle
+data
+models
+vis
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

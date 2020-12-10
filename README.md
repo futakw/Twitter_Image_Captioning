@@ -37,6 +37,11 @@ https://qiita.com/ragzboned/items/834c0bc3caaa494fc906
 をmecab_dict_pathの引数で与える
 
 
+# データの確認
+```
+python dataset.py
+```
+
 # 学習
 
 ##### 語彙の辞書を作成
