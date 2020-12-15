@@ -20,6 +20,10 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+def loadPickle(fileName):
+    with open(fileName, mode="rb") as f:
+        return pickle.load(f)
+
 def load_image(image_path, transform=None):
     image = Image.open(image_path).convert('RGB')
     image = image.resize([224, 224], Image.LANCZOS)
@@ -89,21 +93,25 @@ def main(args):
     encoder.load_state_dict(torch.load(args.encoder_path))
     decoder.load_state_dict(torch.load(args.decoder_path))
 
-    accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
-
 
     frame_rate = 5.0 # フレームレート
-    size = (500, 500) # 動画の画面サイズ
+    w, h = 500, 800
+    size = (w, h) # 動画の画面サイズ
     fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v') # ファイル形式(ここではmp4)
     writer = cv2.VideoWriter(args.out_file, fmt, frame_rate, size) # ライター作成
 
-    for acc in accounts:
-        print(acc)
-        this_acc_images = glob.glob(f'data/images/{acc}*')
+    accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
+    for user in accounts:
+        print(user)
+        ann_path = os.path.join(f"data/annos/{user}.pickle")
+        annos = loadPickle(ann_path)
+
         for i in range(10): # 10まい
-            # print(i)
-            # Prepare an image
-            image_path = this_acc_images[i]
+            ann = annos[i]
+
+            image_path =  f'data/images/{ann["filename"]}'
+            orig_text = ann['text']
+
             image = load_image(image_path, transform)
             # image = load_image(args.image, transform)
             image_tensor = image.to(device)
@@ -129,13 +137,26 @@ def main(args):
             # image = Image.open(args.image)
             # plt.imshow(np.asarray(image))
 
-            frame = cv2.imread(image_path)
-            frame = resize_square_pad(frame)
-            frame = cv2.putText(frame, image_path, (10,480), cv2.FONT_HERSHEY_SIMPLEX ,  
+            img = cv2.imread(image_path)
+            img = resize_square_pad(img)
+
+            frame = np.zeros((h,w,3)).astype('uint8')
+            frame[h-w:, :, :] = img
+            frame = cv2.putText(frame, image_path, (10, h-20), cv2.FONT_HERSHEY_SIMPLEX ,  
                    0.5, (0,255,0), 1, cv2.LINE_AA) 
-            s = sentence.replace('<start>','').replace('<end>','')
-            for i in range(len(s)//30 + 1):
-                frame = puttext(frame, s[40*i:40*(i+1)], point=(15,20*(i+1)))
+
+            n = 20
+            s = 'GT: \n'
+            for i in range(len(orig_text)//n + 1):
+                s += orig_text[n*i:n*(i+1)] + '\n'
+            frame = puttext(frame, s, point=(15,20*(i+1)), color=(255,255,255))
+
+            s = 'Result: \n' 
+            res = sentence.replace('<start>','').replace('<end>','').replace(' ','')
+            for i in range(len(res)//n + 1):
+                s += res[n*i:n*(i+1)] + '\n'
+            frame = puttext(frame, s, point=(15,(h-w)/2+20*(i+1)), color=(255,0,0))
+
             writer.write(frame)
     
     writer.release()
