@@ -1,6 +1,7 @@
 *.png
 *.jpg
 *.pickle
+*.mp4
 data
 models
 vis
