@@ -12,7 +12,7 @@ from torchvision import transforms
 from img_transform import image_transform
 
 # usage
-# python3 train.py --caption_path 
+# python3 train.py --version 2 --vocab_path data/vocab_new.pkl
 # python3 train.py --mode twitter --save_step 20 --batch_size 16 --do_further_train
 
 # Device configuration
@@ -112,14 +112,14 @@ def main(args):
                     decoder.state_dict(),
                     os.path.join(
                         args.model_path,
-                        "decoder-{}-{}.{}.ckpt".format(epoch + 1, i + 1, args.mode),
+                        "decoder-{}-{}.{}.{}.ckpt".format(epoch + 1, i + 1, args.mode, args.version),
                     ),
                 )
                 torch.save(
                     encoder.state_dict(),
                     os.path.join(
                         args.model_path,
-                        "encoder-{}-{}.{}.ckpt".format(epoch + 1, i + 1, args.mode),
+                        "encoder-{}-{}.{}.{}.ckpt".format(epoch + 1, i + 1, args.mode, args.version),
                     ),
                 )
 
@@ -199,6 +199,9 @@ if __name__ == "__main__":
     parser.add_argument("--do_further_train", action="store_true")
     parser.add_argument(
         "--mecab_dict_path", default="/home/smg/nishikawa/src/lib/mecab/dic/ipadic"
+    )
+    parser.add_argument(
+        "--version", default="1"
     )
     args = parser.parse_args()
     print(args)
