@@ -35,42 +35,48 @@ class Vocabulary(object):
     def __len__(self):
         return len(self.word2idx)
 
+def get_coco_words(json, text_tokenizer, threshold):
+    counter = Counter()
+    coco = COCO(json)
+    ids = coco.anns.keys()
+    for i, id in enumerate(ids):
+        caption = str(coco.anns[id]['caption'])
+        # tokens = nltk.tokenize.word_tokenize(caption.lower())
+        tokens = text_tokenizer.tokenize(caption, return_str=True).split()
+        counter.update(tokens)
+
+        if (i + 1) % 1000 == 0:
+            print("[{}/{}] Tokenized the captions.".format(i + 1, len(ids)))
+    return [word for word, cnt in counter.items() if cnt >= threshold]
+
+def get_twitter_words(text_tokenizer):
+    counter = Counter()
+    from collect_twitter_data.data_info import data_info
+    use_account = data_info["animal"]
+    print("start build vocab for twitter corpus")
+    annos = []
+    for user in use_account:
+        ann_path = os.path.join("data", f"annos/{user}.pickle")
+        ann = loadPickle(ann_path)
+        annos += ann
+
+    for ann in annos:
+        tokens = text_tokenizer.tokenize(ann["text"], return_str=True).split()
+        counter.update(tokens)
+    return list(counter.keys())
+
+
 
 def build_vocab(json, threshold, use_coco=False, use_twitter=False, mecab_dict_path=None):
     """Build a simple vocabulary wrapper."""
     text_tokenizer = JapaneseTokenizer(splitter="MeCab", model=mecab_dict_path)
-    counter = Counter()
+    words = []
 
     if use_coco == True:
-        coco = COCO(json)
-        ids = coco.anns.keys()
-        for i, id in enumerate(ids):
-            caption = str(coco.anns[id]['caption'])
-            # tokens = nltk.tokenize.word_tokenize(caption.lower())
-            tokens = text_tokenizer.tokenize(caption, return_str=True).split()
-            counter.update(tokens)
-
-            if (i + 1) % 1000 == 0:
-                print("[{}/{}] Tokenized the captions.".format(i + 1, len(ids)))
-
+        words += get_coco_words(json, text_tokenizer, threshold)
     if use_twitter == True:
-        # TODO 読み込み方
-        from collect_twitter_data.data_info import data_info
-
-        use_account = data_info["animal"]
-        print("start build vocab for twitter corpus")
-        annos = []
-        for user in use_account:
-            ann_path = os.path.join("data", f"annos/{user}.pickle")
-            ann = loadPickle(ann_path)
-            annos += ann
-
-        for ann in annos:
-            tokens = text_tokenizer.tokenize(ann["text"], return_str=True).split()
-            counter.update(tokens)
-
-    # If the word frequency is less than 'threshold', then the word is discarded.
-    words = [word for word, cnt in counter.items() if cnt >= threshold]
+        words += get_twitter_words(text_tokenizer)
+    words = set(words)
 
     # Create a vocab wrapper and add some special tokens.
     vocab = Vocabulary()
