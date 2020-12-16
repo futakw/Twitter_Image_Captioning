@@ -14,8 +14,8 @@ from PIL import Image
 import io,sys
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
-#  python sample.py --image='png/example.png' 
-# python3 sample.py --image='png/example.png' --vocab_path data/vocab_ja.pkl --encoder_path models/encoder-5-20.twitter.ckpt --decoder_path models/decoder-5-20.twitter.ckpt
+#  python sample.py 
+# python3 sample.py --vocab_path data/vocab_new.pkl --encoder_path models/encoder-5-20.twitter.2.ckpt --decoder_path models/decoder-5-20.twitter.2.ckpt
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -167,11 +167,11 @@ if __name__ == '__main__':
 
     mode = 'coco'
     if mode == 'coco':
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.ckpt', help='path for trained decoder')
+        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.2.ckpt', help='path for trained encoder')
+        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.2.ckpt', help='path for trained decoder')
     elif mode == 'twitter':
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-20.twitter.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-20.twitter.ckpt', help='path for trained decoder')
+        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-20.twitter.2.ckpt', help='path for trained encoder')
+        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-20.twitter.2.ckpt', help='path for trained decoder')
 
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
