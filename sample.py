@@ -191,7 +191,7 @@ def main(args):
                         0.5, (0,255,0), 1, cv2.LINE_AA) 
                     s = 'Similar caption data: \n'
                     for i in range(len(text)//n + 1):
-                        s += res[n*i:n*(i+1)] + '\n'
+                        s += text[n*i:n*(i+1)] + '\n'
                     frame = puttext(frame, s, point=(15+im_size,(h-im_size)/2+20), color=(0,0,255))
                 sim_image_file = None
 
