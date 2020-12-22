@@ -66,8 +66,15 @@ python3 train.py --mode twitter --save_step 20 --batch_size 16 --do_further_trai
 ```
 
 # 検証
+事前に、画像の重複をチェックする！！
 ```bash
-python3 sample.py --image='png/example.png'
+cd collect_twitter_data
+python check_duplicated_images.py
+```
+
+sample.pyの中でモデル、データセットを指定してから、
+```bash
+python3 sample.py
 ```
 <!--
 # データセット
