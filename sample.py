@@ -106,7 +106,8 @@ def main(args):
         ann_path = os.path.join(f"data/annos/{user}.pickle")
         annos = loadPickle(ann_path)
 
-        for i in range(10): # 10まい
+        m = min(len(annos), 100) # 枚数
+        for i in range(m):
             ann = annos[i]
 
             image_path =  f'data/images/{ann["filename"]}'
