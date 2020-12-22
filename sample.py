@@ -119,9 +119,9 @@ def main(args):
         annos = loadPickle(ann_path)
 
         if args.split == 'train':
-            annos = annos[:-10]
+            annos = annos[:-20]
         elif args.split == 'val':
-            annos = annos[-10:]
+            annos = annos[-20:]
 
         m = min(len(annos), 100) # 枚数
         for i in range(m):
@@ -216,13 +216,8 @@ if __name__ == '__main__':
         parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.2.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.2.ckpt', help='path for trained decoder')
     elif mode == 'twitter':
-<<<<<<< HEAD
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-20.twitter.n.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-20.twitter.n.ckpt', help='path for trained decoder')
-=======
         parser.add_argument('--encoder_path', type=str, default='models/encoder-10-280.twitter.epoch10.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-10-280.twitter.epoch10.ckpt', help='path for trained decoder')
->>>>>>> b8dec29628540dbe3f249f3408899b66b7c716b3
 
     parser.add_argument('--vocab_path', type=str, default='data/vocab_n.pkl', help='path for vocabulary wrapper')
     
@@ -232,19 +227,6 @@ if __name__ == '__main__':
     parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
     args = parser.parse_args()
 
-<<<<<<< HEAD
-
-    data_mode = 'val'
-
-    args.data_path = 'data/images'
-    args.out_file = f'results_{mode}.{data_mode}.mp4'
-    
-    from collect_twitter_data.data_info import data_info
-    if data_mode == 'train':
-        args.use_account = data_info['animal']
-    elif data_mode == 'val':
-        args.use_account = data_info['val_animal']
-=======
     args.data_path = 'data/images'
 
     args.split = 'val'
@@ -252,6 +234,5 @@ if __name__ == '__main__':
 
     args.out_file = f'{args.split}_results_{mode}.mp4'
     args.result_out_file = f'{args.split}_results_{mode}.pickle'
->>>>>>> b8dec29628540dbe3f249f3408899b66b7c716b3
 
     main(args)
