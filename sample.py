@@ -172,10 +172,10 @@ if __name__ == '__main__':
         parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.2.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.2.ckpt', help='path for trained decoder')
     elif mode == 'twitter':
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-260.twitter.1.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-260.twitter.1.ckpt', help='path for trained decoder')
+        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-20.twitter.n.ckpt', help='path for trained encoder')
+        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-20.twitter.n.ckpt', help='path for trained decoder')
 
-    parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
+    parser.add_argument('--vocab_path', type=str, default='data/vocab_n.pkl', help='path for vocabulary wrapper')
     
     # Model parameters (should be same as paramters in train.py)
     parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
@@ -183,10 +183,11 @@ if __name__ == '__main__':
     parser.add_argument('--num_layers', type=int , default=1, help='number of layers in lstm')
     args = parser.parse_args()
 
-    args.data_path = 'data/images'
-    args.out_file = f'results_{mode}.mp4'
 
     data_mode = 'val'
+
+    args.data_path = 'data/images'
+    args.out_file = f'results_{mode}.{data_mode}.mp4'
     
     from collect_twitter_data.data_info import data_info
     if data_mode == 'train':
