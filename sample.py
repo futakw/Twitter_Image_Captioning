@@ -176,11 +176,12 @@ def main(args):
                 res = sentence.replace('<start>','').replace('<end>','').replace(' ','')
                 for i in range(len(res)//n + 1):
                     s += res[n*i:n*(i+1)] + '\n'
-                frame = puttext(frame, s, point=(15,(h-im_size)/2+20), color=(255,0,0))
+                frame = puttext(frame, s, point=(15,(h-im_size)/2+20), color=(0,255,0))
 
                 # 出力結果と似たキャプションの画像を探す
+                sim_image_file = None
                 for text in text2file:
-                    if res[:8] in text:
+                    if (res[:8] in text) or (res[-8:] in text):
                         sim_image_file = text2file[text]
                         break
                 if sim_image_file is not None:
@@ -189,7 +190,7 @@ def main(args):
                     frame[h-im_size:, im_size:, :] = img
                     frame = cv2.putText(frame, sim_image_file, (10+im_size, h-20), cv2.FONT_HERSHEY_SIMPLEX ,  
                         0.5, (0,255,0), 1, cv2.LINE_AA) 
-                    s = 'Similar caption data: \n'
+                    s = 'Similar data: \n'
                     for i in range(len(text)//n + 1):
                         s += text[n*i:n*(i+1)] + '\n'
                     frame = puttext(frame, s, point=(15+im_size,(h-im_size)/2+20), color=(0,0,255))
@@ -219,7 +220,7 @@ if __name__ == '__main__':
         parser.add_argument('--encoder_path', type=str, default='models/encoder-10-280.twitter.epoch10.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-10-280.twitter.epoch10.ckpt', help='path for trained decoder')
 
-    parser.add_argument('--vocab_path', type=str, default='data/vocab_n.pkl', help='path for vocabulary wrapper')
+    parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
     # Model parameters (should be same as paramters in train.py)
     parser.add_argument('--embed_size', type=int , default=256, help='dimension of word embedding vectors')
