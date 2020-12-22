@@ -124,7 +124,8 @@ if __name__ == "__main__":
     parser.add_argument("--use_twitter", action="store_true")
     parser.add_argument("--use_coco", action="store_true")
     parser.add_argument(
-        "--mecab_dict_path", default="/home/smg/nishikawa/src/lib/mecab/dic/ipadic"
+        # "--mecab_dict_path", default="/home/smg/nishikawa/src/lib/mecab/dic/ipadic"
+         "--mecab_dict_path", default="/home/smg/nishikawa/mecab-ipadic-neologd"
     )
     args = parser.parse_args()
     main(args)

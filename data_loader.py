@@ -16,7 +16,7 @@ import numpy as np
 # from dataset import TwitterDataset
 from preprocess.japanese_tokenizer import JapaneseTokenizer
 
-from pycocotools.coco import COCO
+from pycocotools2.coco import COCO
 
 
 class CocoDataset(data.Dataset):
