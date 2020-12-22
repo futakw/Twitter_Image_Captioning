@@ -167,13 +167,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--encoder_path",
         type=str,
-        default="models/encoder-5-3000.coco.n.ckpt",
+        default="models/encoder-5-3000.coco.1.ckpt",
         help="path for trained encoder",
     )
     parser.add_argument(
         "--decoder_path",
         type=str,
-        default="models/decoder-5-3000.coco.n.ckpt",
+        default="models/decoder-5-3000.coco.1.ckpt",
         help="path for trained decoder",
     )
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
         "--num_layers", type=int, default=1, help="number of layers in lstm"
     )
 
-    parser.add_argument("--num_epochs", type=int, default=5)
+    parser.add_argument("--num_epochs", type=int, default=10)
     parser.add_argument("--batch_size", type=int, default=128)
     parser.add_argument("--num_workers", type=int, default=2)
     parser.add_argument("--learning_rate", type=float, default=0.001)
@@ -202,7 +202,7 @@ if __name__ == "__main__":
         "--mecab_dict_path", default="/home/smg/nishikawa/src/lib/mecab/dic/ipadic"
     )
     parser.add_argument(
-        "--version", default="1"
+        "--version", default="epoch10"
     )
     args = parser.parse_args()
     print(args)

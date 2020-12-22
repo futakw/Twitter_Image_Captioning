@@ -20,6 +20,14 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+# 重複してる画像のpath
+with open('collect_twitter_data/duplicated_images_path.pickle', 'rb') as f:
+    duplicated_images_path = pickle.load(f)
+
+# text2path
+with open('text2file.pickle', 'rb') as f:
+    text2file = pickle.load(f)
+
 def loadPickle(fileName):
     with open(fileName, mode="rb") as f:
         return pickle.load(f)
@@ -84,7 +92,7 @@ def main(args):
     # Build models
     print('Building models')
     encoder = EncoderCNN(args.embed_size).eval()  # eval mode (batchnorm uses moving mean/variance)
-    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers)
+    decoder = DecoderRNN(args.embed_size, args.hidden_size, len(vocab), args.num_layers, use_inference=args.use_inference).eval()
     encoder = encoder.to(device)
     decoder = decoder.to(device)
 
@@ -95,73 +103,109 @@ def main(args):
 
 
     frame_rate = 5.0 # フレームレート
-    w, h = 500, 800
+    im_size = 500
+    w, h = 1000, 800
     size = (w, h) # 動画の画面サイズ
     fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v') # ファイル形式(ここではmp4)
     writer = cv2.VideoWriter(args.out_file, fmt, frame_rate, size) # ライター作成
 
-    # accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
-    accounts = args.use_account
+    results_dict = {}
+
+    accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
+    # accounts = args.use_account
     for user in accounts:
         print(user)
         ann_path = os.path.join(f"data/annos/{user}.pickle")
         annos = loadPickle(ann_path)
+
+        if args.split == 'train':
+            annos = annos[:-10]
+        elif args.split == 'val':
+            annos = annos[-10:]
 
         m = min(len(annos), 100) # 枚数
         for i in range(m):
             ann = annos[i]
 
             image_path =  f'data/images/{ann["filename"]}'
-            orig_text = ann['text']
+            if  args.split == 'val' and image_path in duplicated_images_path:
+                print('is duplicated image.') 
+            else:
+                orig_text = ann['text']
 
-            image = load_image(image_path, transform)
-            # image = load_image(args.image, transform)
-            image_tensor = image.to(device)
-            
-            # Generate an caption from the image
-            feature = encoder(image_tensor)
-            sampled_ids = decoder.sample(feature)
-            sampled_ids = sampled_ids[0].cpu().numpy()          # (1, max_seq_length) -> (max_seq_length)
-            
-            # Convert word_ids to words
-            sampled_caption = []
-            for word_id in sampled_ids:
-                word = vocab.idx2word[word_id]
-                sampled_caption.append(word)
-                if word == '<end>':
-                    break
-            sentence = ' '.join(sampled_caption)
-            
-            # Print out the image and the generated caption
-            # print(type(sentence))
-            print(sentence)
-            # print(sentence.encode('utf_8'))
-            # image = Image.open(args.image)
-            # plt.imshow(np.asarray(image))
+                image = load_image(image_path, transform)
+                # image = load_image(args.image, transform)
+                image_tensor = image.to(device)
+                
+                # Generate an caption from the image
+                feature = encoder(image_tensor)
+                sampled_ids = decoder.sample(feature)
+                sampled_ids = sampled_ids[0].cpu().numpy()          # (1, max_seq_length) -> (max_seq_length)
+                
+                # Convert word_ids to words
+                sampled_caption = []
+                for word_id in sampled_ids:
+                    word = vocab.idx2word[word_id]
+                    sampled_caption.append(word)
+                    if word == '<end>':
+                        break
+                sentence = ' '.join(sampled_caption)
+                
+                # Print out the image and the generated caption
+                # print(type(sentence))
+                print(sentence)
+                # print(sentence.encode('utf_8'))
+                # image = Image.open(args.image)
+                # plt.imshow(np.asarray(image))
 
-            img = cv2.imread(image_path)
-            img = resize_square_pad(img)
+                img = cv2.imread(image_path)
+                img = resize_square_pad(img)
 
-            frame = np.zeros((h,w,3)).astype('uint8')
-            frame[h-w:, :, :] = img
-            frame = cv2.putText(frame, image_path, (10, h-20), cv2.FONT_HERSHEY_SIMPLEX ,  
-                   0.5, (0,255,0), 1, cv2.LINE_AA) 
+                frame = np.zeros((h,w,3)).astype('uint8')
+                frame[h-im_size:, :im_size, :] = img
+                frame = cv2.putText(frame, image_path, (10, h-20), cv2.FONT_HERSHEY_SIMPLEX ,  
+                    0.5, (0,255,0), 1, cv2.LINE_AA) 
 
-            n = 20
-            s = 'GT: \n'
-            for i in range(len(orig_text)//n + 1):
-                s += orig_text[n*i:n*(i+1)] + '\n'
-            frame = puttext(frame, s, point=(15,20*(i+1)), color=(255,255,255))
+                n = 20
+                s = 'GT: \n'
+                for i in range(len(orig_text)//n + 1):
+                    s += orig_text[n*i:n*(i+1)] + '\n'
+                frame = puttext(frame, s, point=(15,20), color=(255,255,255))
 
-            s = 'Result: \n' 
-            res = sentence.replace('<start>','').replace('<end>','').replace(' ','')
-            for i in range(len(res)//n + 1):
-                s += res[n*i:n*(i+1)] + '\n'
-            frame = puttext(frame, s, point=(15,(h-w)/2+20*(i+1)), color=(255,0,0))
+                s = 'Result: \n' 
+                res = sentence.replace('<start>','').replace('<end>','').replace(' ','')
+                for i in range(len(res)//n + 1):
+                    s += res[n*i:n*(i+1)] + '\n'
+                frame = puttext(frame, s, point=(15,(h-im_size)/2+20), color=(255,0,0))
 
-            writer.write(frame)
+                # 出力結果と似たキャプションの画像を探す
+                for text in text2file:
+                    if res[:8] in text:
+                        sim_image_file = text2file[text]
+                        break
+                if sim_image_file is not None:
+                    img = cv2.imread(sim_image_file)
+                    img = resize_square_pad(img)
+                    frame[h-im_size:, im_size:, :] = img
+                    frame = cv2.putText(frame, sim_image_file, (10+im_size, h-20), cv2.FONT_HERSHEY_SIMPLEX ,  
+                        0.5, (0,255,0), 1, cv2.LINE_AA) 
+                    s = 'Similar caption data: \n'
+                    for i in range(len(text)//n + 1):
+                        s += res[n*i:n*(i+1)] + '\n'
+                    frame = puttext(frame, s, point=(15+im_size,(h-im_size)/2+20), color=(0,0,255))
+                sim_image_file = None
+
+                writer.write(frame)
+
+                # 結果を記録
+                results_dict[image_path] = res
     
     writer.release()
+
+    # 結果を記録
+    with open(args.result_out_file, 'wb') as f:
+        pickle.dump(results_dict, f)
+
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -172,8 +216,8 @@ if __name__ == '__main__':
         parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.2.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.2.ckpt', help='path for trained decoder')
     elif mode == 'twitter':
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-260.twitter.1.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-260.twitter.1.ckpt', help='path for trained decoder')
+        parser.add_argument('--encoder_path', type=str, default='models/encoder-10-280.twitter.epoch10.ckpt', help='path for trained encoder')
+        parser.add_argument('--decoder_path', type=str, default='models/decoder-10-280.twitter.epoch10.ckpt', help='path for trained decoder')
 
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
@@ -184,14 +228,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     args.data_path = 'data/images'
-    args.out_file = f'results_{mode}.mp4'
 
-    data_mode = 'val'
-    
-    from collect_twitter_data.data_info import data_info
-    if data_mode == 'train':
-        args.use_account = data_info['animal']
-    elif data_mode == 'val':
-        args.use_account = data_info['val_animal']
+    args.split = 'val'
+    args.use_inference = True
+
+    args.out_file = f'{args.split}_results_{mode}.mp4'
+    args.result_out_file = f'{args.split}_results_{mode}.pickle'
 
     main(args)

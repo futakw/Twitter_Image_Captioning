@@ -10,13 +10,14 @@ data_info = {
         'bot_DOG_', 'omosiro1dog', 'wanchanhokkori',    
         # ハムスター
         'prettyhamster1', 
+
+        # 追加データ
+        'animalgazo_bot', 'omosirogazouw21', 'riiiiita1238712', 'copycykabeg', 'kawaiidoubututa', 'Animal_gensen',
     ],
 
     # バリデーション用（未知データ）
     'val_animal': [
-        # キャプションなし
-        'ANIMALPlCTURES', 'DobutsuHealing', 'animalgazo_bot', 'omosirogazouw21', 'PrettyanimalBOT', 'riiiiita1238712',
-        # キャプションあり
-        's_animal_cute', 'PolicyVMeyfpmpd', 'copycykabeg', 'kawaiidoubututa', 'nakano_sansen', 'Animal_gensen', 
+        # 英語キャプション
+        'ANIMALPlCTURES', 'DobutsuHealing', 
     ]
 }

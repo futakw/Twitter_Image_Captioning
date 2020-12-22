@@ -95,7 +95,10 @@ class TwitterDataset(Dataset):
         for user in use_account:
             ann_path = os.path.join(self.data_dir, f"annos/{user}.pickle")
             ann = loadPickle(ann_path)
-            self.annos += ann
+            if self.split == 'train':
+                self.annos += ann[:-10]
+            elif self.split == 'val':
+                self.annos += ann[-10:]
 
         print(f"Created {self.split} Dataset of Len: {len(self.annos)}")
 

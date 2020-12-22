@@ -52,7 +52,7 @@ class TwitterDataset(Dataset):
         # text = self.text_transform[self.split](orig_text)
         text = orig_text
 
-        data = {'image': img, 'text': text, 'orig_img': orig_img, 'orig_text': orig_text ,'screen_name': ann['screen_name']}
+        data = {'image': img, 'text': text, 'orig_img': orig_img, 'orig_text': orig_text ,'screen_name': ann['screen_name'], 'image_file': image_file}
         
         return data
 
@@ -74,31 +74,43 @@ if __name__=='__main__':
     # print(dataset.__getitem__(0)['image'])
     # annos = dataset.annos
 
+    text2file = {}
+
     texts = ''
     
-    l = list(range(len(dataset)))
-    for i in l[::50]:
+    for i in range(len(dataset)):
+        if i % 100 == 0:
+            print(i)
         # ann = annos[i]
         # image_file = os.path.join(dataset.data_dir, f'images/{ann["filename"]}')
 
         data = dataset.__getitem__(i)
-        img = data['image']
-        img = unnorm(img)
-        img = img.numpy().transpose(1,2,0)
-        img = np.clip(img, 0, 1)
-        img = np.array(img*255, dtype='uint8')
 
-        img = Image.fromarray(img)
-        filename = f"vis/{split}_{i}.jpg"
-        img.save(filename)
+        if i % 50 == 0:
+            img = data['image']
+            img = unnorm(img)
+            img = img.numpy().transpose(1,2,0)
+            img = np.clip(img, 0, 1)
+            img = np.array(img*255, dtype='uint8')
+
+            img = Image.fromarray(img)
+            filename = f"vis/{split}_{i}.jpg"
+            img.save(filename)
+        
 
         text = data['orig_text']
+        image_file = data['image_file']
 
-        texts += f'{filename} {text}\n'
+        texts += f'{image_file} {text}\n'
+
+        text2file[text] = image_file
+
 
     f = open(f'vis/{split}_captions.txt', 'w')
     f.write(texts)
     f.close()
     
+    with open('text2file.pickle', 'wb') as f:
+        pickle.dump(text2file, f)
         
 
