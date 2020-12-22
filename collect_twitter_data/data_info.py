@@ -11,4 +11,12 @@ data_info = {
         # ハムスター
         'prettyhamster1', 
     ],
+
+    # バリデーション用（未知データ）
+    'val_animal': [
+        # キャプションなし
+        'ANIMALPlCTURES', 'DobutsuHealing', 'animalgazo_bot', 'omosirogazouw21', 'PrettyanimalBOT', 'riiiiita1238712',
+        # キャプションあり
+        's_animal_cute', 'PolicyVMeyfpmpd', 'copycykabeg', 'kawaiidoubututa', 'nakano_sansen', 'Animal_gensen', 
+    ]
 }

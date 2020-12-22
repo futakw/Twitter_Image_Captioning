@@ -100,7 +100,8 @@ def main(args):
     fmt = cv2.VideoWriter_fourcc('m', 'p', '4', 'v') # ファイル形式(ここではmp4)
     writer = cv2.VideoWriter(args.out_file, fmt, frame_rate, size) # ライター作成
 
-    accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
+    # accounts = [p.split('/')[-1].split('.')[0] for p in glob.glob('data/annos/*')]
+    accounts = args.use_account
     for user in accounts:
         print(user)
         ann_path = os.path.join(f"data/annos/{user}.pickle")
@@ -166,13 +167,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('--image', type=str, required=True, help='input image for generating caption')
 
-    mode = 'coco'
+    mode = 'twitter'
     if mode == 'coco':
         parser.add_argument('--encoder_path', type=str, default='models/encoder-5-3000.coco.2.ckpt', help='path for trained encoder')
         parser.add_argument('--decoder_path', type=str, default='models/decoder-5-3000.coco.2.ckpt', help='path for trained decoder')
     elif mode == 'twitter':
-        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-20.twitter.2.ckpt', help='path for trained encoder')
-        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-20.twitter.2.ckpt', help='path for trained decoder')
+        parser.add_argument('--encoder_path', type=str, default='models/encoder-5-260.twitter.1.ckpt', help='path for trained encoder')
+        parser.add_argument('--decoder_path', type=str, default='models/decoder-5-260.twitter.1.ckpt', help='path for trained decoder')
 
     parser.add_argument('--vocab_path', type=str, default='data/vocab.pkl', help='path for vocabulary wrapper')
     
@@ -184,4 +185,13 @@ if __name__ == '__main__':
 
     args.data_path = 'data/images'
     args.out_file = f'results_{mode}.mp4'
+
+    data_mode = 'val'
+    
+    from collect_twitter_data.data_info import data_info
+    if data_mode == 'train':
+        args.use_account = data_info['animal']
+    elif data_mode == 'val':
+        args.use_account = data_info['val_animal']
+
     main(args)

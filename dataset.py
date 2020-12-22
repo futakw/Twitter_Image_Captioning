@@ -35,6 +35,7 @@ class TwitterDataset(Dataset):
         for user in use_account:
             ann_path = os.path.join(self.data_dir, f"annos/{user}.pickle")
             ann = loadPickle(ann_path)
+            print(f'{user}: {len(ann)}')
             self.annos += ann
 
         print(f'Created {self.split} Dataset of Len: {len(self.annos)}')
@@ -75,7 +76,8 @@ if __name__=='__main__':
 
     texts = ''
     
-    for i in range(20):
+    l = list(range(len(dataset)))
+    for i in l[::50]:
         # ann = annos[i]
         # image_file = os.path.join(dataset.data_dir, f'images/{ann["filename"]}')
 

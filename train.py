@@ -167,13 +167,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--encoder_path",
         type=str,
-        default="models/encoder-5-3000.coco.2.ckpt",
+        default="models/encoder-5-3000.coco.1.ckpt",
         help="path for trained encoder",
     )
     parser.add_argument(
         "--decoder_path",
         type=str,
-        default="models/decoder-5-3000.coco.2.ckpt",
+        default="models/decoder-5-3000.coco.1.ckpt",
         help="path for trained decoder",
     )
 
